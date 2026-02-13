@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../config';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -23,7 +24,7 @@ const Login = () => {
 
         const checkServer = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/ping');
+                const res = await fetch(`${config.API_BASE_URL}/ping`);
                 if (res.ok) setServerStatus('online');
                 else setServerStatus('offline');
             } catch (e) {

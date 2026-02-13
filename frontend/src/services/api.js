@@ -1,4 +1,6 @@
-const API_URL = 'https://courier-backend-0ord.onrender.com/api';
+import config from '../config';
+
+const API_URL = config.API_BASE_URL;
 
 
 
