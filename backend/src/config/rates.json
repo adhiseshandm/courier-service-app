@@ -1,0 +1,174 @@
+{
+    "effective_date": "2025-10-01",
+    "domestic_rate_tariff": {
+        "non_document_minimum_chargeable_weight_kg": 1.000,
+        "rates": [
+            {
+                "destination": "COIMBATORE",
+                "0.250_kg": null,
+                "0.500_kg": 50.00,
+                "1.00_kg": 60.00
+            },
+            {
+                "destination": "TAMILNADU / PONDY",
+                "0.250_kg": null,
+                "0.500_kg": 70.00,
+                "1.00_kg": 80.00
+            },
+            {
+                "destination": "KERALA / KARNATAKA",
+                "0.250_kg": null,
+                "0.500_kg": 90.00,
+                "1.00_kg": 100.00
+            },
+            {
+                "destination": "ANDHRA / TELEGANA",
+                "0.250_kg": null,
+                "0.500_kg": 110.00,
+                "1.00_kg": 130.00
+            },
+            {
+                "destination": "MUMBAI / DELHI / OTHER NORTH INDIA",
+                "0.250_kg": 150.00,
+                "0.500_kg": 180.00,
+                "1.00_kg": 250.00
+            },
+            {
+                "destination": "JAMMU / GUWAHATI / ASSAM / KASHMIR / HIMACHAL PRADESH",
+                "0.250_kg": 200.00,
+                "0.500_kg": 250.00,
+                "1.00_kg": 300.00
+            }
+        ]
+    },
+    "air_cargo_above_5kgs_all_types": {
+        "rates": [
+            {
+                "destination": "COIMBATORE",
+                "6_to_25_kgs": 50.00
+            },
+            {
+                "destination": "TAMILNADU / PONDY",
+                "6_to_25_kgs": 60.00
+            },
+            {
+                "destination": "KERALA / KARNATAKA",
+                "6_to_25_kgs": 90.00
+            },
+            {
+                "destination": "ANDHRA / TELEGANA",
+                "6_to_25_kgs": 110.00
+            },
+            {
+                "destination": "OTHER NORTH INDIA",
+                "6_to_25_kgs": 230.00
+            },
+            {
+                "destination": "JAMMU / GUWAHATI / ASSAM / KASHMIR / HIMACHAL PRADESH",
+                "6_to_25_kgs": 280.00
+            }
+        ],
+        "volumetric_charges": "L X H X B / 4500",
+        "notes": [
+            "Volumetric charges applicable",
+            "Above 50,000 value E Way Bill Must"
+        ]
+    },
+    "surface_cargo_above_5kgs_all_types": {
+        "rates": [
+            {
+                "destination": "COIMBATORE",
+                "above_5kg_per_25kg_d_series": null,
+                "above_26kg_per_100kg_d_series": 40.00,
+                "gec_above_30kgs_g_series_ssl_only": null
+            },
+            {
+                "destination": "TAMILNADU / PONDY",
+                "above_5kg_per_25kg_d_series": null,
+                "above_26kg_per_100kg_d_series": 50.00,
+                "gec_above_30kgs_g_series_ssl_only": null
+            },
+            {
+                "destination": "KERALA / KARNATAKA",
+                "above_5kg_per_25kg_d_series": null,
+                "above_26kg_per_100kg_d_series": 80.00,
+                "gec_above_30kgs_g_series_ssl_only": null
+            },
+            {
+                "destination": "ANDHRA / TELEGANA",
+                "above_5kg_per_25kg_d_series": null,
+                "above_26kg_per_100kg_d_series": 100.00,
+                "gec_above_30kgs_g_series_ssl_only": null
+            },
+            {
+                "destination": "MUMBAI / DELHI / OTHER NORTH INDIA",
+                "above_5kg_per_25kg_d_series": 150.00,
+                "above_26kg_per_100kg_d_series": 130.00,
+                "gec_above_30kgs_g_series_ssl_only": 100.00
+            },
+            {
+                "destination": "JAMMU / GUWAHATI / ASSAM / KASHMIR / HIMACHAL PRADESH",
+                "above_5kg_per_25kg_d_series": 200.00,
+                "above_26kg_per_100kg_d_series": 170.00,
+                "gec_above_30kgs_g_series_ssl_only": null
+            }
+        ],
+        "volumetric_charges": "L X H X B / 5000",
+        "minimum_chargeable_weight_north_surface": "5 KGS"
+    },
+    "dtdc_plus_tariff": {
+        "rates": [
+            {
+                "destination_type": "REGIONAL PLUS",
+                "destinations": "TAMIL NADU/ PONDICHEERY",
+                "minimum_500gms": 280.00,
+                "additional_500gms": 120.00
+            },
+            {
+                "destination_type": "ZONAL PLUS",
+                "destinations": "KERALA / KARNATAKA",
+                "minimum_500gms": 350.00,
+                "additional_500gms": 150.00
+            },
+            {
+                "destination_type": "METRO PLUS",
+                "destinations": "DELHI, MUMBAI, KOLKATA, HYDERABAD",
+                "minimum_500gms": 380.00,
+                "additional_500gms": 250.00
+            },
+            {
+                "destination_type": "NATIONAL PLUS",
+                "destinations": "OTHER PLACE IN INDIA",
+                "minimum_500gms": 400.00,
+                "additional_500gms": 270.00
+            }
+        ]
+    },
+    "laptop_booking_rates": {
+        "rates": [
+            {
+                "destination": "TAMIL NADU",
+                "upto_3_kgs": 1000
+            },
+            {
+                "destination": "KERALA/ KARNATAKA",
+                "upto_3_kgs": 1300
+            },
+            {
+                "destination": "ANDHERA /TELANAGANA",
+                "upto_3_kgs": 1500
+            },
+            {
+                "destination": "NORTH INDIA",
+                "upto_3_kgs": 1600
+            }
+        ],
+        "notes": [
+            "Insurance Owner Risk Only",
+            "Pick up charges 1 to 5 km (250 RS) 5 to 10 km (400 RS)",
+            "Packing Charges 250.00",
+            "This rate applicable only for 5 Kgs",
+            "Above 5 Kgs per Kg 200 RS"
+        ]
+    }
+}
