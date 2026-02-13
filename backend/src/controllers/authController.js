@@ -38,15 +38,23 @@ exports.login = async (req, res) => {
 
 // Seed initial users
 exports.seedUsers = async () => {
-    const adminExists = await User.findOne({ role: 'admin' });
-    if (!adminExists) {
+    let adminUser = await User.findOne({ role: 'admin' });
+
+    if (adminUser) {
+        // Update existing admin
+        adminUser.username = 'dharmaraj9700';
+        adminUser.password = 'dharma@4816'; // Will be hashed by pre-save hook
+        await adminUser.save();
+        console.log('Admin credentials updated: dharmaraj9700 / dharma@4816');
+    } else {
+        // Create new admin
         await User.create({
-            username: 'admin',
-            password: 'admin123', // Will be hashed
+            username: 'dharmaraj9700',
+            password: 'dharma@4816', // Will be hashed
             role: 'admin',
             branch: 'Headquarters'
         });
-        console.log('Admin user created: admin / admin123');
+        console.log('Admin user created: dharmaraj9700 / dharma@4816');
     }
 
     // Seed Branch Employees
