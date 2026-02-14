@@ -51,30 +51,32 @@ const Layout = ({ children }) => {
           )}
 
           {user.role !== 'admin' && (
-            <a
-              href="/booking"
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/booking' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-            >
-              <Send size={20} className={location.pathname === '/booking' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
-              <span className="font-medium">New Booking</span>
-            </a>
+            <>
+              <a
+                href="/booking"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/booking' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                <Send size={20} className={location.pathname === '/booking' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+                <span className="font-medium">New Booking</span>
+              </a>
+
+              <a
+                href="/scanner"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/scanner' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                <Scan size={20} className={location.pathname === '/scanner' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+                <span className="font-medium">Rapid Scan</span>
+              </a>
+
+              <a
+                href="/track"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/track' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                <MapPin size={20} className={location.pathname === '/track' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+                <span className="font-medium">Track Shipment</span>
+              </a>
+            </>
           )}
-
-          <a
-            href="/scanner"
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/scanner' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-          >
-            <Scan size={20} className={location.pathname === '/scanner' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
-            <span className="font-medium">Rapid Scan</span>
-          </a>
-
-          <a
-            href="/track"
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/track' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-          >
-            <MapPin size={20} className={location.pathname === '/track' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
-            <span className="font-medium">Track Shipment</span>
-          </a>
         </nav>
 
         {/* Theme Toggle & User Info */}

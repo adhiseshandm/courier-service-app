@@ -48,10 +48,30 @@ exports.bookConsignment = async (req, res) => {
 
 exports.getMyBookings = async (req, res) => {
     try {
-        const bookings = await Consignment.find({ processedBy: req.user._id })
+        const matchStage = {};
+
+        // If Admin, show everything (or keep it restricted if they want to see nothing in booking history?)
+        // The user said "individual tracking history for individual branches". 
+        // So a Branch User should only see their branch's bookings.
+
+        if (req.user.role !== 'admin') {
+            // Filter by the branch of the logged-in user
+            // Assuming the user model has a 'branch' field. 
+            // If not, we fall back to processedBy which is already there.
+            // But 'processedBy' only shows bookings *they* made.
+            // If they want 'Branch' level visibility, we should query by branch.
+
+            if (req.user.branch) {
+                matchStage.branch = req.user.branch;
+            } else {
+                matchStage.processedBy = req.user._id; // Fallback to personal if no branch assigned
+            }
+        }
+
+        const bookings = await Consignment.find(matchStage)
             .sort({ bookingDate: -1 })
-            .limit(10)
-            .select('receiver.destination status bookingDate cost.amount');
+            .limit(20) // Increased limit
+            .select('receiver.destination status bookingDate cost.amount branch');
 
         res.json({ success: true, count: bookings.length, data: bookings });
     } catch (error) {
