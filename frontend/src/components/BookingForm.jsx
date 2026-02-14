@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import WeightScale from './WeightScale';
-import OtpModal from './OtpModal';
-import { calculateRate, sendOtp, bookConsignment } from '../services/api';
+
+import { calculateRate, bookConsignment } from '../services/api';
 import { User, MapPin, Package, Truck, Calculator, CheckCircle, AlertCircle, Send, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,7 +34,7 @@ const BookingForm = () => {
     });
 
     const [costData, setCostData] = useState(null);
-    const [isOtpOpen, setIsOtpOpen] = useState(false);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -78,37 +78,20 @@ const BookingForm = () => {
 
     const handleInitiateBooking = async () => {
         if (!costData) return setError('Please calculate rate first');
-        // if (!formData.sender.email) return setError('Sender Email is required for OTP'); // Removed Validation
 
-        setLoading(true);
-        try {
-            const response = await sendOtp({
-                phone: formData.sender.phone
-                // email: formData.sender.email // Removed
-            });
-            if (response.success) setIsOtpOpen(true);
-            else setError(response.error || 'Failed to send OTP');
-        } catch (err) {
-            setError('Failed to send OTP');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyBooking = async (otp) => {
         setLoading(true);
         try {
             const bookingPayload = {
                 ...formData,
                 cost: { amount: costData.cost, currency: costData.currency },
-                otp
+                // otp: removed
             };
             const result = await bookConsignment(bookingPayload);
             if (result.success) {
                 setSuccess(`Booking Confirmed! ID: ${result.bookingId || result.consignmentId}`);
-                setIsOtpOpen(false);
+                // setIsOtpOpen(false); // Removed
                 setFormData({
-                    sender: { name: '', phone: '', address: '', pincode: '' }, // Removed email
+                    sender: { name: '', phone: '', address: '', pincode: '' },
                     receiver: { name: '', phone: '', address: '', destination: '', pincode: '' },
                     packageDetails: { weight: 0, type: 'Non-Document', contentDescription: '', declaredValue: 0 },
                     serviceType: 'Domestic',
@@ -119,11 +102,15 @@ const BookingForm = () => {
                 alert('Booking failed: ' + result.error);
             }
         } catch (err) {
-            alert('Verification failed');
+            alert('Booking failed');
         } finally {
             setLoading(false);
         }
     };
+
+    // calculateRate handles... (no change needed)
+
+    // handleVerifyBooking removed completely
 
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -296,12 +283,7 @@ const BookingForm = () => {
                 </div>
             </div>
 
-            <OtpModal
-                isOpen={isOtpOpen}
-                onClose={() => setIsOtpOpen(false)}
-                onVerify={handleVerifyBooking}
-                phone={formData.sender.phone}
-            />
+
         </motion.div>
     );
 };

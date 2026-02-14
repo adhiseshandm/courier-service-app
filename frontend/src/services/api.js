@@ -44,17 +44,7 @@ export const calculateRate = async (data) => {
     return response.json();
 };
 
-export const sendOtp = async (data) => {
-    // Determine if data is object or just phone string (backward compatibility)
-    const payload = typeof data === 'object' ? data : { phone: data };
 
-    const response = await fetchWithTimeout(`${API_URL}/send-otp`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(payload),
-    });
-    return response.json();
-};
 
 
 export const bookConsignment = async (data) => {
