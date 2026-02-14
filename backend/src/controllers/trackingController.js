@@ -18,12 +18,51 @@ exports.trackConsignment = async (req, res) => {
             { status: 'Delivered', date: null, location: consignment.receiver.destination, completed: consignment.status === 'Delivered' }
         ];
 
-    }
+        // Mock Coordinates Logic
+        const getCoordinates = (location) => {
+            if (!location) return [21.1458, 79.0882]; // Default Hub
+
+            const coords = {
+                'Mumbai': [19.0760, 72.8777],
+                'Delhi': [28.7041, 77.1025],
+                'Bangalore': [12.9716, 77.5946],
+                'Chennai': [13.0827, 80.2707],
+                'Kolkata': [22.5726, 88.3639],
+                'Hyderabad': [17.3850, 78.4867],
+                'Pune': [18.5204, 73.8567],
+                'Hub': [21.1458, 79.0882],
+                'Main Branch': [12.9716, 77.5946],
+                'Coimbatore': [11.0168, 76.9558],
+                'Salem': [11.6643, 78.1460],
+                'Tiruppur': [11.1085, 77.3411],
+                'Erode': [11.3410, 77.7172],
+                'Trichy': [10.7905, 78.7047],
+                'Madurai': [9.9252, 78.1198],
+            };
+
+            // Fuzzy match or default
+            const key = Object.keys(coords).find(k => location.includes(k));
+            return key ? coords[key] : coords['Hub'];
+        };
+
+        const originLocation = consignment.branch || 'Main Branch';
+        const destLocation = consignment.receiver.destination || 'Hub';
+        const currentLocation = consignment.status === 'Delivered' ? destLocation : (consignment.status === 'Booked' ? originLocation : 'Hub');
+
+        res.json({
+            success: true,
+            data: {
+                ...consignment.toObject(),
+                history,
+                originCoords: getCoordinates(originLocation),
+                destCoords: getCoordinates(destLocation),
+                currentCoords: getCoordinates(currentLocation)
+            }
         });
     } catch (error) {
-    console.error('Tracking Error:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
-}
+        console.error('Tracking Error:', error);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
 };
 
 exports.updateStatus = async (req, res) => {

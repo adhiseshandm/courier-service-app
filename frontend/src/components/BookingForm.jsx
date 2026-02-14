@@ -138,13 +138,14 @@ const BookingForm = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
                                 onClick={() => {
+                                    const phone = formData.sender.phone.replace(/\D/g, '');
                                     const message = `📦 *Shipment Booked!*\nTracking ID: *${bookingId}*\nTrack here: ${window.location.origin}/track?id=${bookingId}`;
-                                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
                                 }}
                                 className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all"
                             >
                                 <span className="text-xl">💬</span>
-                                <span>WhatsApp</span>
+                                <span>WhatsApp Sender</span>
                             </button>
 
                             <button
