@@ -335,16 +335,16 @@ const BookingForm = () => {
                                     <span className="px-3 py-1 bg-gray-50 text-gray-600 text-xs rounded-full border border-gray-200">COD</span>
                                 </div>
                             </div>
+
+                            {/* Booking History - Moved here for better visibility */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-96 flex flex-col">
+                                <BookingHistory key={refreshHistoryTrigger} />
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Sidebar - Sticky, Outside the Main Form Area */}
-                <div className="w-full lg:w-80 flex-shrink-0">
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
-                        <BookingHistory key={refreshHistoryTrigger} />
-                    </div>
-                </div>
+                {/* External Sidebar Removed */}
 
             </div>
         </motion.div>
