@@ -26,7 +26,7 @@ const InputField = ({ placeholder, val, onChange, type = "text" }) => (
 
 const BookingForm = () => {
     const [formData, setFormData] = useState({
-        sender: { name: '', email: '', phone: '', address: '', pincode: '' },
+        sender: { name: '', phone: '', address: '', pincode: '' }, // Removed email
         receiver: { name: '', phone: '', address: '', destination: '', pincode: '' },
         packageDetails: { weight: 0, type: 'Non-Document', contentDescription: '', declaredValue: 0 },
         serviceType: 'Domestic',
@@ -78,13 +78,13 @@ const BookingForm = () => {
 
     const handleInitiateBooking = async () => {
         if (!costData) return setError('Please calculate rate first');
-        if (!formData.sender.email) return setError('Sender Email is required for OTP');
+        // if (!formData.sender.email) return setError('Sender Email is required for OTP'); // Removed Validation
 
         setLoading(true);
         try {
             const response = await sendOtp({
-                phone: formData.sender.phone,
-                email: formData.sender.email
+                phone: formData.sender.phone
+                // email: formData.sender.email // Removed
             });
             if (response.success) setIsOtpOpen(true);
             else setError(response.error || 'Failed to send OTP');
@@ -108,7 +108,7 @@ const BookingForm = () => {
                 setSuccess(`Booking Confirmed! ID: ${result.bookingId || result.consignmentId}`);
                 setIsOtpOpen(false);
                 setFormData({
-                    sender: { name: '', phone: '', email: '', address: '', pincode: '' },
+                    sender: { name: '', phone: '', address: '', pincode: '' }, // Removed email
                     receiver: { name: '', phone: '', address: '', destination: '', pincode: '' },
                     packageDetails: { weight: 0, type: 'Non-Document', contentDescription: '', declaredValue: 0 },
                     serviceType: 'Domestic',
@@ -151,7 +151,7 @@ const BookingForm = () => {
                                 }}
                                 className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-green-700 flex items-center space-x-1"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2-2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
                                 <span>Print Label</span>
                             </button>
                             <button onClick={() => setSuccess('')} className="text-green-800 font-bold p-1 hover:bg-green-200 rounded">&times;</button>
@@ -181,7 +181,7 @@ const BookingForm = () => {
                                 <div className="space-y-4">
                                     <InputField placeholder="Sender Name" val={formData.sender.name} onChange={v => handleInputChange('sender', 'name', v)} />
                                     <InputField placeholder="Phone Number" val={formData.sender.phone} onChange={v => handleInputChange('sender', 'phone', v)} />
-                                    <InputField placeholder="Email (for Receipt)" val={formData.sender.email} onChange={v => handleInputChange('sender', 'email', v)} />
+                                    {/* <InputField placeholder="Email (for Receipt)" val={formData.sender.email} onChange={v => handleInputChange('sender', 'email', v)} /> Removed */}
                                     <InputField placeholder="Address" val={formData.sender.address} onChange={v => handleInputChange('sender', 'address', v)} />
                                     <InputField placeholder="Pincode" val={formData.sender.pincode} onChange={v => handleInputChange('sender', 'pincode', v)} />
                                 </div>
@@ -267,7 +267,7 @@ const BookingForm = () => {
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-medium transition-all flex items-center justify-center space-x-2"
                             >
                                 <Calculator size={18} />
-                                <span>{loading ? 'Calculating...' : 'Calculate Rate'}</span>
+                                <span>{loading ? 'Calculating (v2)...' : 'Calculate Rate'}</span>
                             </button>
 
                             {costData && (
@@ -301,10 +301,10 @@ const BookingForm = () => {
                 onClose={() => setIsOtpOpen(false)}
                 onVerify={handleVerifyBooking}
                 phone={formData.sender.phone}
-                email={formData.sender.email}
             />
         </motion.div>
     );
 };
+
 
 export default BookingForm;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const OtpModal = ({ isOpen, onClose, onVerify, phone, email }) => {
+const OtpModal = ({ isOpen, onClose, onVerify, phone }) => {
 
     const [otp, setOtp] = useState('');
 
@@ -14,14 +14,7 @@ const OtpModal = ({ isOpen, onClose, onVerify, phone, email }) => {
                 <h2 className="text-xl font-bold mb-4 text-gray-800">Please Verify OTP</h2>
                 <div className="mb-6 space-y-2">
                     <p className="text-gray-600">Enter the 6-digit code sent to:</p>
-                    {email ? (
-                        <div className="font-semibold text-lg text-blue-900">
-                            <div>{email}</div>
-                            <div className="text-sm text-gray-500">{phone}</div>
-                        </div>
-                    ) : (
-                        <p className="font-semibold text-lg">{phone}</p>
-                    )}
+                    <p className="font-semibold text-lg">{phone}</p>
                 </div>
 
 

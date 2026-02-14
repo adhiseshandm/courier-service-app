@@ -12,8 +12,31 @@ const getHeaders = () => {
     };
 };
 
+// Helper for timeout
+const fetchWithTimeout = async (resource, options = {}) => {
+    const { timeout = 8000 } = options;
+
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timed out. Server is taking too long to respond.');
+        }
+        throw error;
+    }
+};
+
 export const calculateRate = async (data) => {
-    const response = await fetch(`${API_URL}/calculate-rates`, {
+    const response = await fetchWithTimeout(`${API_URL}/calculate-rates`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -25,7 +48,7 @@ export const sendOtp = async (data) => {
     // Determine if data is object or just phone string (backward compatibility)
     const payload = typeof data === 'object' ? data : { phone: data };
 
-    const response = await fetch(`${API_URL}/send-otp`, {
+    const response = await fetchWithTimeout(`${API_URL}/send-otp`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -35,7 +58,7 @@ export const sendOtp = async (data) => {
 
 
 export const bookConsignment = async (data) => {
-    const response = await fetch(`${API_URL}/book`, {
+    const response = await fetchWithTimeout(`${API_URL}/book`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -45,7 +68,7 @@ export const bookConsignment = async (data) => {
 
 export const getDashboardStats = async (branch) => {
     const url = branch ? `${API_URL}/admin/stats?branch=${encodeURIComponent(branch)}` : `${API_URL}/admin/stats`;
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
         headers: getHeaders()
     });
     return response.json();
@@ -53,7 +76,7 @@ export const getDashboardStats = async (branch) => {
 
 export const exportReport = async (branch) => {
     const url = branch ? `${API_URL}/admin/export-excel?branch=${encodeURIComponent(branch)}` : `${API_URL}/admin/export-excel`;
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
         headers: getHeaders()
     });
     const blob = await response.blob();
@@ -66,12 +89,12 @@ export const exportReport = async (branch) => {
 
 export const getEmployees = async (branch) => {
     const url = branch ? `${API_URL}/admin/employees?branch=${encodeURIComponent(branch)}` : `${API_URL}/admin/employees`;
-    const response = await fetch(url, { headers: getHeaders() });
+    const response = await fetchWithTimeout(url, { headers: getHeaders() });
     return response.json();
 };
 
 export const createEmployee = async (data) => {
-    const response = await fetch(`${API_URL}/admin/employees`, {
+    const response = await fetchWithTimeout(`${API_URL}/admin/employees`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data)
@@ -80,12 +103,12 @@ export const createEmployee = async (data) => {
 };
 
 export const getRates = async () => {
-    const response = await fetch(`${API_URL}/admin/rates`, { headers: getHeaders() });
+    const response = await fetchWithTimeout(`${API_URL}/admin/rates`, { headers: getHeaders() });
     return response.json();
 };
 
 export const updateRate = async (data) => {
-    const response = await fetch(`${API_URL}/admin/rates`, {
+    const response = await fetchWithTimeout(`${API_URL}/admin/rates`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data)
@@ -95,7 +118,7 @@ export const updateRate = async (data) => {
 
 
 export const sendDailyReport = async () => {
-    const response = await fetch(`${API_URL}/admin/daily-report`, {
+    const response = await fetchWithTimeout(`${API_URL}/admin/daily-report`, {
         method: 'POST',
         headers: getHeaders(),
     });
@@ -108,7 +131,7 @@ export const getLabelUrl = (consignmentId) => {
 };
 
 export const downloadLabel = async (consignmentId) => {
-    const response = await fetch(`${API_URL}/label/${consignmentId}`, {
+    const response = await fetchWithTimeout(`${API_URL}/label/${consignmentId}`, {
         headers: getHeaders()
     });
     if (!response.ok) throw new Error('Failed to generate label');

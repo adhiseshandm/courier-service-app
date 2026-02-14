@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const consignmentSchema = new mongoose.Schema({
     sender: {
         name: { type: String, required: true },
-        email: { type: String, required: true }, // Added for OTP
         phone: { type: String, required: true },
 
         address: { type: String, required: true },
