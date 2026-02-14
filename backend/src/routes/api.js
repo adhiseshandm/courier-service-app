@@ -25,6 +25,7 @@ router.post('/auth/login', (req, res, next) => {
 router.post('/calculate-rates', protect, rateController.calculateRate);
 // router.post('/send-otp', protect, bookingController.generateOtp); // Removed
 router.post('/book', protect, bookingController.bookConsignment);
+router.get('/bookings/recent', protect, bookingController.getMyBookings);
 
 // Admin Routes
 router.get('/admin/export-excel', protect, authorize('admin', 'employee'), reportController.exportMonthlyReport);

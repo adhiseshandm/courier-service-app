@@ -44,3 +44,17 @@ exports.bookConsignment = async (req, res) => {
         res.status(500).json({ error: 'Booking failed' });
     }
 };
+
+exports.getMyBookings = async (req, res) => {
+    try {
+        const bookings = await Consignment.find({ processedBy: req.user._id })
+            .sort({ bookingDate: -1 })
+            .limit(10)
+            .select('receiver.destination status bookingDate cost.amount');
+
+        res.json({ success: true, count: bookings.length, data: bookings });
+    } catch (error) {
+        console.error('Fetch Bookings Error:', error);
+        res.status(500).json({ error: 'Failed to fetch history' });
+    }
+};
