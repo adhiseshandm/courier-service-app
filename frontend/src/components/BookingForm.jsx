@@ -70,7 +70,7 @@ const BookingForm = () => {
                 serviceType: formData.serviceType
             });
             setCostData(result);
-        } catch (err) {
+        } catch (error) {
             setError('Failed to calculate rate. Please check inputs.');
         } finally {
             setLoading(false);
@@ -103,7 +103,7 @@ const BookingForm = () => {
             } else {
                 alert('Booking failed: ' + result.error);
             }
-        } catch (err) {
+        } catch (error) {
             alert('Booking failed');
         } finally {
             setLoading(false);

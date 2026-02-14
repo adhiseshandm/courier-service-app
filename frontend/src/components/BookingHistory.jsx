@@ -1,4 +1,3 @@
-```javascript
 import React, { useEffect, useState } from 'react';
 import { Clock, ChevronRight, Copy, Check, AlertCircle } from 'lucide-react';
 import { API_BASE_URL, getHeaders } from '../services/api';
@@ -12,12 +11,12 @@ const BookingHistory = ({ onSelect }) => {
     const fetchHistory = async () => {
         try {
             setError(null);
-            const res = await fetch(`${ API_BASE_URL } /bookings/recent`, {
+            const res = await fetch(`${API_BASE_URL}/bookings/recent`, {
                 headers: getHeaders()
             });
             if (!res.ok) {
                 if (res.status === 401) throw new Error("Unauthorized");
-                throw new Error(`Server Error: ${ res.status } `);
+                throw new Error(`Server Error: ${res.status}`);
             }
             const data = await res.json();
             if (data.success) {
@@ -86,11 +85,10 @@ const BookingHistory = ({ onSelect }) => {
                             <span className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded group-hover:bg-blue-200 group-hover:text-blue-800 transition-colors">
                                 {booking._id.slice(-6).toUpperCase()}
                             </span>
-                            <span className={`text - [10px] font - bold px - 2 py - 0.5 rounded - full ${
-    booking.status === 'Booked' ? 'bg-yellow-100 text-yellow-700' :
-        booking.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-            'bg-blue-100 text-blue-700'
-} `}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${booking.status === 'Booked' ? 'bg-yellow-100 text-yellow-700' :
+                                booking.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+                                    'bg-blue-100 text-blue-700'
+                                }`}>
                                 {booking.status}
                             </span>
                         </div>
@@ -113,7 +111,7 @@ const BookingHistory = ({ onSelect }) => {
                                     {copiedId === booking._id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                                 </button>
                                 <a
-                                    href={`/ track ? id = ${ booking._id } `}
+                                    href={`/track?id=${booking._id}`}
                                     onClick={(e) => e.stopPropagation()} // Prevent parent click if needed, or let it flow
                                     className="text-gray-300 hover:text-red-500 transition-colors"
                                     title="Track"
