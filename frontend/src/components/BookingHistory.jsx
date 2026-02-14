@@ -1,23 +1,31 @@
+```javascript
 import React, { useEffect, useState } from 'react';
-import { Clock, ChevronRight, Copy, Check } from 'lucide-react';
+import { Clock, ChevronRight, Copy, Check, AlertCircle } from 'lucide-react';
 import { API_BASE_URL, getHeaders } from '../services/api';
 
 const BookingHistory = ({ onSelect }) => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Add error state
     const [copiedId, setCopiedId] = useState(null);
 
     const fetchHistory = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/bookings/recent`, {
+            setError(null);
+            const res = await fetch(`${ API_BASE_URL } /bookings/recent`, {
                 headers: getHeaders()
             });
+            if (!res.ok) {
+                if (res.status === 401) throw new Error("Unauthorized");
+                throw new Error(`Server Error: ${ res.status } `);
+            }
             const data = await res.json();
             if (data.success) {
                 setBookings(data.data);
             }
         } catch (error) {
             console.error('Failed to load history', error);
+            setError(error.message); // Set error message
         } finally {
             setLoading(false);
         }
@@ -38,6 +46,16 @@ const BookingHistory = ({ onSelect }) => {
     };
 
     if (loading) return <div className="p-4 text-center text-gray-400 text-sm">Loading history...</div>;
+
+    if (error) return (
+        <div className="p-6 text-center border-l border-gray-100 h-full flex flex-col items-center justify-center">
+            <AlertCircle size={24} className="text-red-400 mb-2" />
+            <p className="text-red-500 text-sm font-medium">Failed to load history</p>
+            <p className="text-xs text-gray-400 mt-1">{error}</p>
+            <p className="text-[10px] text-gray-300 mt-2 break-all">{API_BASE_URL}</p>
+            <button onClick={fetchHistory} className="mt-3 text-xs bg-red-50 text-red-600 px-3 py-1 rounded-full hover:bg-red-100">Retry</button>
+        </div>
+    );
 
     if (bookings.length === 0) return (
         <div className="p-6 text-center border-l border-gray-100 h-full">
@@ -68,10 +86,11 @@ const BookingHistory = ({ onSelect }) => {
                             <span className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded group-hover:bg-blue-200 group-hover:text-blue-800 transition-colors">
                                 {booking._id.slice(-6).toUpperCase()}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${booking.status === 'Booked' ? 'bg-yellow-100 text-yellow-700' :
-                                    booking.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                                        'bg-blue-100 text-blue-700'
-                                }`}>
+                            <span className={`text - [10px] font - bold px - 2 py - 0.5 rounded - full ${
+    booking.status === 'Booked' ? 'bg-yellow-100 text-yellow-700' :
+        booking.status === 'Delivered' ? 'bg-green-100 text-green-700' :
+            'bg-blue-100 text-blue-700'
+} `}>
                                 {booking.status}
                             </span>
                         </div>
@@ -94,7 +113,7 @@ const BookingHistory = ({ onSelect }) => {
                                     {copiedId === booking._id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                                 </button>
                                 <a
-                                    href={`/track?id=${booking._id}`}
+                                    href={`/ track ? id = ${ booking._id } `}
                                     onClick={(e) => e.stopPropagation()} // Prevent parent click if needed, or let it flow
                                     className="text-gray-300 hover:text-red-500 transition-colors"
                                     title="Track"
