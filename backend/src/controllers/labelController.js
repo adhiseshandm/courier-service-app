@@ -1,7 +1,6 @@
 const PDFDocument = require('pdfkit');
 const bwipjs = require('bwip-js');
 const Consignment = require('../models/Consignment');
-const path = require('path');
 
 exports.generateLabel = async (req, res) => {
     try {
@@ -12,75 +11,78 @@ exports.generateLabel = async (req, res) => {
             return res.status(404).json({ error: 'Consignment not found' });
         }
 
-        // Create a document (4x6 inches for label printers)
+        // 4x6 Inch Label (288 x 432 points)
         const doc = new PDFDocument({
-            size: [288, 432], // 4x6 inches in points (72 DPI)
-            margin: 10
+            size: [288, 432],
+            margin: 10,
+            autoFirstPage: true
         });
 
-        // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename=label-${consignmentId}.pdf`);
 
         doc.pipe(res);
 
-        // --- Logo / Header ---
-        doc.fontSize(18).font('Helvetica-Bold').text('DTDC+', { align: 'center' });
-        doc.fontSize(8).font('Helvetica').text('Enterprise Courier Service', { align: 'center' });
+        // --- Borders ---
+        doc.lineWidth(4).rect(5, 5, 278, 422).stroke(); // Heavy outer border
+        doc.lineWidth(1);
 
-        doc.moveDown();
-        doc.lineWidth(2).moveTo(10, doc.y).lineTo(278, doc.y).stroke();
-        doc.moveDown();
+        // --- Header Section (Service Type) ---
+        doc.moveTo(5, 50).lineTo(283, 50).stroke(); // Horizontal divider
 
-        // --- Barcode Generation ---
-        const barcodeBuffer = await bwipjs.toBuffer({
-            bcid: 'code128',       // Barcode type
-            text: consignment._id.toString(),    // Text to encode
-            scale: 3,              // 3x scaling factor
-            height: 10,            // Bar height, in millimeters
-            includetext: true,     // Show human-readable text
-            textxalign: 'center',  // Always good to align this
-        });
+        doc.fontSize(24).font('Helvetica-Bold').text(consignment.serviceType.toUpperCase().substring(0, 1), 15, 15); // Big Letter (e.g., 'D', 'E')
+        doc.fontSize(10).font('Helvetica-Bold').text('DTDC+', 15, 15, { align: 'right', width: 258 });
+        doc.fontSize(8).font('Helvetica').text('EXPRESS DELIVERY', 15, 28, { align: 'right', width: 258 });
 
-        const barcodeY = doc.y + 10;
-        doc.image(barcodeBuffer, 44, barcodeY, { width: 200, align: 'center' }); // Centered roughly
-        doc.y = barcodeY + 60; // Move cursor past barcode
+        // --- From Address ---
+        doc.font('Helvetica-Bold').fontSize(6).text('FROM:', 12, 55);
+        doc.font('Helvetica').fontSize(9).text(consignment.sender.name, 12, 65, { width: 150 })
+            .fontSize(8).text(consignment.sender.address, { width: 160 })
+            .text(`Ph: ${consignment.sender.phone}`);
 
-        // --- Shipping Details ---
-        doc.moveDown();
+        // --- To Address (Big) ---
+        doc.moveTo(5, 120).lineTo(283, 120).stroke(); // Horizontal divider
 
-        // Sender box
-        const startY = doc.y;
-        doc.rect(10, startY, 268, 80).stroke();
-        doc.fontSize(8).font('Helvetica-Bold').text('FROM:', 15, startY + 5);
-        doc.font('Helvetica').fontSize(10).text(consignment.sender.name, 15, startY + 15);
-        doc.fontSize(8).text(consignment.sender.address, { width: 250 });
-        doc.text(`Phone: ${consignment.sender.phone}`);
+        doc.font('Helvetica-Bold').fontSize(8).text('SHIP TO:', 12, 125);
+        doc.font('Helvetica-Bold').fontSize(14).text(consignment.receiver.name, 20, 138);
+        doc.font('Helvetica').fontSize(11).text(consignment.receiver.address, 20, 155, { width: 250 })
+            .fontSize(14).font('Helvetica-Bold').text(`${consignment.receiver.destination} - ${consignment.receiver.pincode}`, 20, doc.y + 5);
 
-        // Receiver box
-        const receiverY = startY + 90;
-        doc.rect(10, receiverY, 268, 100).stroke();
-        doc.fontSize(10).font('Helvetica-Bold').text('TO:', 15, receiverY + 5);
-        doc.fontSize(14).text(consignment.receiver.name, 15, receiverY + 20);
-        doc.fontSize(10).font('Helvetica').text(consignment.receiver.address, { width: 250 });
-        doc.text(`${consignment.receiver.destination} - ${consignment.receiver.pincode}`);
-        doc.font('Helvetica-Bold').text(`Phone: ${consignment.receiver.phone}`, { continued: false });
+        doc.fontSize(10).font('Helvetica').text(`Ph: ${consignment.receiver.phone}`, 20, doc.y + 5);
 
-        // --- Footer Info ---
-        const footerY = receiverY + 110;
+        // --- Routing / Sorting Code Area ---
+        const sortY = 240;
+        doc.moveTo(5, sortY).lineTo(283, sortY).stroke();
 
-        doc.fontSize(12).font('Helvetica-Bold').text(consignment.serviceType.toUpperCase(), 15, footerY);
-        doc.fontSize(10).font('Helvetica').text(`Weight: ${consignment.packageDetails.weight} kg`, 15, footerY + 15);
+        doc.rect(5, sortY, 100, 60).stroke(); // Box for Destination Sort Code
+        doc.fontSize(24).font('Helvetica-Bold').text(consignment.receiver.pincode.substring(0, 3), 15, sortY + 20);
 
-        // Date
-        const dateStr = new Date(consignment.bookingDate).toLocaleDateString();
-        doc.text(`Date: ${dateStr}`, 180, footerY);
+        doc.fontSize(8).text(`WT: ${consignment.packageDetails.weight} KG`, 120, sortY + 10);
+        doc.text(`DATE: ${new Date(consignment.bookingDate).toLocaleDateString()}`, 120, sortY + 25);
+        doc.text(`DIMS: N/A`, 120, sortY + 40);
 
-        // Branch
-        doc.moveDown();
-        doc.fontSize(8).text(`Processed by: ${consignment.branch || 'Main Branch'}`, 15, footerY + 40, { align: 'center', width: 258 });
+        // --- Barcode Section ---
+        const barcodeY = 320;
+        doc.moveTo(5, barcodeY).lineTo(283, barcodeY).stroke();
 
-        // Finalize PDF file
+        try {
+            const barcodeBuffer = await bwipjs.toBuffer({
+                bcid: 'code128',
+                text: consignment._id.toString(),
+                scale: 3,
+                height: 12,
+                includetext: true,
+                textxalign: 'center',
+            });
+            doc.image(barcodeBuffer, 24, barcodeY + 15, { width: 240, align: 'center' });
+        } catch (e) {
+            console.error(e);
+            doc.text(consignment._id.toString(), 20, barcodeY + 20);
+        }
+
+        // --- Footer ---
+        doc.fontSize(6).text('Generated by DTDC+ Enterprise Portal', 10, 415, { align: 'center', width: 268 });
+
         doc.end();
 
     } catch (error) {
