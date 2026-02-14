@@ -5,9 +5,11 @@ import TrackingTimeline from '../components/TrackingTimeline';
 import { io } from 'socket.io-client';
 
 // Lazy load map components
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import 'leaflet-routing-machine';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css'; // Import Routing CSS
 
 // Fix Leaflet Default Icon Issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -24,15 +26,50 @@ const truckIcon = new L.Icon({
     popupAnchor: [0, -10]
 });
 
-// Helper to center map
-const RecenterMap = ({ origin, destination }) => {
+// Routing Machine Component
+const RoutingMachine = ({ origin, destination, current }) => {
     const map = useMap();
+
     useEffect(() => {
-        if (origin && destination) {
-            const bounds = L.latLngBounds([origin, destination]);
-            map.fitBounds(bounds, { padding: [50, 50] });
+        if (!map || !origin || !destination) return;
+
+        const waypoints = [
+            L.latLng(origin[0], origin[1])
+        ];
+
+        if (current &&
+            (current[0] !== origin[0] || current[1] !== origin[1]) &&
+            (current[0] !== destination[0] || current[1] !== destination[1])) {
+            waypoints.push(L.latLng(current[0], current[1]));
         }
-    }, [origin, destination, map]);
+
+        waypoints.push(L.latLng(destination[0], destination[1]));
+
+        const routingControl = L.Routing.control({
+            waypoints,
+            header: false, // Hide header
+            show: false,   // Hide instructions
+            collapsible: true,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            showAlternatives: false,
+            lineOptions: {
+                styles: [{ color: '#2563eb', weight: 5, opacity: 0.7 }]
+            },
+            createMarker: function () { return null; } // We use our own React markers
+        }).addTo(map);
+
+        return () => {
+            // Safe removal
+            try {
+                map.removeControl(routingControl);
+            } catch (e) {
+                console.warn("Error removing routing control", e);
+            }
+        };
+    }, [map, origin, destination, current]);
+
     return null;
 };
 
@@ -55,7 +92,11 @@ const TrackConsignment = () => {
     const fetchCoordinates = async (address) => {
         if (!address) return null;
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`, {
+                headers: {
+                    'User-Agent': 'CourierApp/1.0'
+                }
+            });
             const data = await response.json();
             if (data && data.length > 0) {
                 return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
@@ -290,7 +331,11 @@ const TrackConsignment = () => {
                                         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                     />
 
-                                    <RecenterMap origin={geoCoords.origin} destination={geoCoords.destination} />
+                                    <RoutingMachine
+                                        origin={geoCoords.origin}
+                                        destination={geoCoords.destination}
+                                        current={geoCoords.current}
+                                    />
 
                                     <Marker position={geoCoords.origin}>
                                         <Popup>Origin: {trackingData.branch}</Popup>
@@ -303,7 +348,6 @@ const TrackConsignment = () => {
                                             <Popup>Current Location: {trackingData.status}</Popup>
                                         </Marker>
                                     )}
-                                    <Polyline positions={[geoCoords.origin, geoCoords.destination]} color="#2563eb" dashArray="10, 10" weight={4} opacity={0.6} />
                                 </MapContainer>
                             ) : (
                                 <div className="h-full flex items-center justify-center text-gray-400 bg-gray-100">
