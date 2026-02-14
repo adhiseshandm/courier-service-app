@@ -178,7 +178,7 @@ const BookingForm = () => {
                     </div>
                 </div>
                 {/* Sidebar should still be visible even in success view? Maybe. Let's keep it consistent. */}
-                <div className="hidden lg:flex w-80 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-col">
+                <div className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px] lg:h-auto">
                     <BookingHistory key={refreshHistoryTrigger} />
                 </div>
             </motion.div>
@@ -331,8 +331,8 @@ const BookingForm = () => {
                 </div>
             </div>
 
-            {/* History Sidebar - Fixed on Desktop */}
-            <div className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[500px] lg:h-auto">
+            {/* History Sidebar - Visible on all screens now */}
+            <div className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[400px] lg:h-auto">
                 <BookingHistory key={refreshHistoryTrigger} />
             </div>
 
