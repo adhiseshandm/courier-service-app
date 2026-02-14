@@ -45,6 +45,7 @@ router.get('/label/:consignmentId', protect, labelController.generateLabel);
 
 // Public Tracking Route
 router.get('/track/:id', trackingController.trackConsignment);
+router.post('/track/update/:id', trackingController.updateStatus); // Demo/Simulate Route
 
 // Invoice Route
 router.get('/invoice/:id', protect, invoiceController.generateInvoice); // Protected as it contains personal info

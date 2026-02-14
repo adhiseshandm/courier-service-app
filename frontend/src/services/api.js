@@ -65,6 +65,15 @@ export const trackConsignment = async (id) => {
     return response.json();
 };
 
+export const updateConsignmentStatus = async (id, status, location) => {
+    const response = await fetchWithTimeout(`${API_URL}/track/update/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, location })
+    });
+    return response.json();
+};
+
 export const getDashboardStats = async (branch) => {
     const url = branch ? `${API_URL}/admin/stats?branch=${encodeURIComponent(branch)}` : `${API_URL}/admin/stats`;
     const response = await fetchWithTimeout(url, {

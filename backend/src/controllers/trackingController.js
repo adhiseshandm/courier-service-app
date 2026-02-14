@@ -18,15 +18,43 @@ exports.trackConsignment = async (req, res) => {
             { status: 'Delivered', date: null, location: consignment.receiver.destination, completed: consignment.status === 'Delivered' }
         ];
 
-        res.json({
-            success: true,
-            data: {
-                ...consignment.toObject(),
-                history
-            }
+    }
         });
     } catch (error) {
-        console.error('Tracking Error:', error);
+    console.error('Tracking Error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+}
+};
+
+exports.updateStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, location } = req.body;
+
+        const consignment = await Consignment.findByIdAndUpdate(
+            id,
+            { status, branch: location || 'Hub' },
+            { new: true }
+        );
+
+        if (!consignment) {
+            return res.status(404).json({ success: false, message: 'Consignment not found' });
+        }
+
+        // Emit Real-time Update
+        const io = req.app.get('io');
+        if (io) {
+            io.to(id).emit('tracking-update', {
+                status: consignment.status,
+                location: consignment.branch,
+                updatedAt: new Date()
+            });
+            console.log(`📡 Emitted update for ${id}: ${status}`);
+        }
+
+        res.json({ success: true, message: 'Status updated', data: consignment });
+    } catch (error) {
+        console.error('Update Error:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };

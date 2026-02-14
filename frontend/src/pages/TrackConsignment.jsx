@@ -1,13 +1,54 @@
-import React, { useState } from 'react';
-import { Search, ArrowRight, Download } from 'lucide-react';
-import { trackConsignment, downloadInvoice } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { Search, ArrowRight, Download, RefreshCw } from 'lucide-react';
+import { trackConsignment, downloadInvoice, updateConsignmentStatus, API_BASE_URL } from '../services/api';
 import TrackingTimeline from '../components/TrackingTimeline';
+import { io } from 'socket.io-client';
 
 const TrackConsignment = () => {
     const [trackingId, setTrackingId] = useState('');
     const [trackingData, setTrackingData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [socket, setSocket] = useState(null);
+
+    // Socket Connection
+    useEffect(() => {
+        const newSocket = io(API_BASE_URL);
+        setSocket(newSocket);
+
+        return () => newSocket.close();
+    }, []);
+
+    // Listen for updates
+    useEffect(() => {
+        if (!socket || !trackingData) return;
+
+        socket.emit('join-tracking', trackingData._id);
+
+        socket.on('tracking-update', (update) => {
+            console.log('Real-time update received:', update);
+            setTrackingData(prev => ({
+                ...prev,
+                status: update.status,
+                branch: update.location, // Update current location
+                history: [
+                    ...prev.history.map(h => ({
+                        ...h,
+                        completed: getStatusPriority(h.status) <= getStatusPriority(update.status)
+                    }))
+                ]
+            }));
+        });
+
+        return () => {
+            socket.off('tracking-update');
+        };
+    }, [socket, trackingData?._id]); // Only re-subscribe if ID changes
+
+    const getStatusPriority = (status) => {
+        const priorities = { 'Booked': 1, 'In Transit': 2, 'Out for Delivery': 3, 'Delivered': 4 };
+        return priorities[status] || 0;
+    };
 
     const handleTrack = async (e) => {
         e.preventDefault();
@@ -37,6 +78,16 @@ const TrackConsignment = () => {
             await downloadInvoice(trackingData._id);
         } catch (err) {
             alert('Failed to download invoice');
+        }
+    };
+
+    // Simulation / Admin Controls
+    const simulateUpdate = async (newStatus) => {
+        if (!trackingData) return;
+        try {
+            await updateConsignmentStatus(trackingData._id, newStatus, 'Hub/Transit Point');
+        } catch (err) {
+            alert('Failed to update status');
         }
     };
 
@@ -99,6 +150,22 @@ const TrackConsignment = () => {
                     </div>
 
                     <div className="p-6 md:p-8">
+                        {/* Simulation Controls (Demo Only) */}
+                        <div className="mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                            <p className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-3">⚡ Live Simulation (Demo)</p>
+                            <div className="flex flex-wrap gap-2">
+                                {['In Transit', 'Out for Delivery', 'Delivered'].map(status => (
+                                    <button
+                                        key={status}
+                                        onClick={() => simulateUpdate(status)}
+                                        className="px-3 py-1.5 bg-white text-blue-600 text-xs font-bold rounded-lg border border-blue-200 hover:bg-blue-600 hover:text-white transition-colors"
+                                    >
+                                        Set: {status}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                             <div className="bg-gray-50 p-6 rounded-2xl">
                                 <p className="text-gray-500 text-sm mb-2">Origin</p>
