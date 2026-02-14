@@ -75,65 +75,86 @@ const Dashboard = () => {
 
                 {/* Revenue Trend */}
                 <ChartCard title="Revenue Trend (7 Days)">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={revenueData}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
-                            <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                            <YAxis tickLine={false} axisLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', border: 'none' }}
-                                itemStyle={{ color: '#fff' }}
-                            />
-                            <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    {revenueData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={revenueData}>
+                                <defs>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
+                                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', border: 'none' }}
+                                    itemStyle={{ color: '#fff' }}
+                                />
+                                <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                            <TrendingUp size={48} className="mb-2 opacity-20" />
+                            <p>No revenue data yet</p>
+                        </div>
+                    )}
                 </ChartCard>
 
                 {/* Service Distribution */}
                 <ChartCard title="Service Type Distribution">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={serviceData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {serviceData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {serviceData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={serviceData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {serviceData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ borderRadius: '8px' }} />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                            <Package size={48} className="mb-2 opacity-20" />
+                            <p>No service data available</p>
+                        </div>
+                    )}
                 </ChartCard>
 
                 {/* Branch Performance */}
                 <div className="lg:col-span-2">
                     <ChartCard title="Top Branches by Revenue">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={branchData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" opacity={0.3} />
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} tick={{ fill: '#4b5563', fontSize: 13, fontWeight: 600 }} />
-                                <Tooltip
-                                    cursor={{ fill: '#f3f4f6' }}
-                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                />
-                                <Bar dataKey="revenue" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {branchData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={branchData} layout="vertical" margin={{ left: 20, right: 20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" opacity={0.3} />
+                                    <XAxis type="number" hide />
+                                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} tick={{ fill: '#4b5563', fontSize: 13, fontWeight: 600 }} />
+                                    <Tooltip
+                                        cursor={{ fill: '#f3f4f6' }}
+                                        contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                    />
+                                    <Bar dataKey="revenue" fill="#4f46e5" radius={[0, 4, 4, 0]} barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                                <Users size={48} className="mb-2 opacity-20" />
+                                <p>No branch performance data</p>
+                            </div>
+                        )}
                     </ChartCard>
                 </div>
             </div>
