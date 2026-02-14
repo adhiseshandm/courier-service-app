@@ -1,10 +1,11 @@
 import config from '../config';
 
+export const API_BASE_URL = config.API_BASE_URL;
 const API_URL = config.API_BASE_URL;
 
 
 
-const getHeaders = () => {
+export const getHeaders = () => {
     const token = localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
