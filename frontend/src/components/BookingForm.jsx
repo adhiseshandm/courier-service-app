@@ -80,6 +80,11 @@ const BookingForm = () => {
     const handleInitiateBooking = async () => {
         if (!costData) return setError('Please calculate rate first');
 
+        // Basic Validation
+        if (!formData.sender.name || !formData.sender.phone || !formData.sender.address) return setError('Sender details incomplete');
+        if (!formData.receiver.name || !formData.receiver.phone || !formData.receiver.destination) return setError('Receiver details incomplete');
+        if (formData.packageDetails.weight <= 0) return setError('Invalid weight');
+
         setLoading(true);
         try {
             const bookingPayload = {
@@ -102,6 +107,7 @@ const BookingForm = () => {
                 setDiscount(''); // Reset Discount
             } else {
                 alert('Booking failed: ' + result.error);
+                setError(result.error);
             }
         } catch (error) {
             alert('Booking failed');

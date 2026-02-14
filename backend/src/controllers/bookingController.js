@@ -24,6 +24,7 @@ exports.bookConsignment = async (req, res) => {
             serviceType,
             consignmentType,
             cost: { amount: calculatedCost, currency: 'INR' }, // Enforce Server Cost
+            discount: req.body.discount || 0, // Apply Discount
             otpVerified: true, // Auto-verified since we removed OTP
             status: 'Booked',
             branch: req.user.branch || 'Main Branch',
@@ -40,8 +41,8 @@ exports.bookConsignment = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Booking failed' });
+        console.error('Booking Error:', error);
+        res.status(500).json({ error: error.message || 'Booking failed' });
     }
 };
 
