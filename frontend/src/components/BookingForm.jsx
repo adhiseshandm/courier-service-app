@@ -37,6 +37,7 @@ const BookingForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [discount, setDiscount] = useState(''); // New discount state
     const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0);
 
     const handleInputChange = (section, field, value) => {
@@ -84,6 +85,7 @@ const BookingForm = () => {
             const bookingPayload = {
                 ...formData,
                 cost: { amount: costData.cost, currency: costData.currency },
+                discount: parseFloat(discount) || 0, // Send discount
             };
             const result = await bookConsignment(bookingPayload);
             if (result.success) {
@@ -97,6 +99,7 @@ const BookingForm = () => {
                     consignmentType: 'D'
                 });
                 setCostData(null);
+                setDiscount(''); // Reset Discount
             } else {
                 alert('Booking failed: ' + result.error);
             }
@@ -289,12 +292,35 @@ const BookingForm = () => {
                                 <div className="mt-4 text-center">
                                     {costData ? (
                                         <div>
-                                            <p className="text-gray-400 text-sm uppercase tracking-wide">Total Cost</p>
-                                            <div className="text-4xl font-bold mt-2 flex justify-center items-start text-green-400">
-                                                <span className="text-xl mt-1 mr-1">₹</span>
-                                                {costData.cost}
+                                            <p className="text-gray-400 text-sm uppercase tracking-wide">Base Cost</p>
+                                            <div className="text-3xl font-bold mt-1 text-white">
+                                                ₹{costData.cost}
                                             </div>
-                                            <p className="text-xs text-blue-200 mt-2">Zone: {costData.zone} | Rate/kg: ₹{costData.ratePerKg}</p>
+
+                                            {/* Discount Input */}
+                                            <div className="mt-4 bg-white/10 p-3 rounded-lg border border-white/10">
+                                                <input
+                                                    type="number"
+                                                    placeholder="Discount Amount (₹)"
+                                                    value={discount}
+                                                    onChange={e => {
+                                                        const val = parseFloat(e.target.value);
+                                                        if (val > costData.cost) return; // Prevent discount > cost
+                                                        setDiscount(e.target.value);
+                                                    }}
+                                                    className="w-full bg-transparent text-white placeholder-gray-400 text-center font-bold focus:outline-none"
+                                                />
+                                            </div>
+
+                                            {/* Final Total */}
+                                            <div className="mt-4 border-t border-white/10 pt-4">
+                                                <p className="text-green-400 text-xs uppercase tracking-widest font-bold">Final to Pay</p>
+                                                <div className="text-4xl font-extrabold text-green-400 mt-1">
+                                                    ₹{(costData.cost - (parseFloat(discount) || 0)).toFixed(2)}
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs text-blue-200 mt-4">Zone: {costData.zone} | Rate/kg: ₹{costData.ratePerKg}</p>
                                         </div>
                                     ) : (
                                         <div className="text-gray-400 py-8">

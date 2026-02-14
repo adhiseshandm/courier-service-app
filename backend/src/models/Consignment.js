@@ -34,10 +34,10 @@ const consignmentSchema = new mongoose.Schema({
         default: 'D' // Defaulting to D (Domestic?) or just Require it. Let's default to D.
     },
     cost: {
-
-        amount: { type: Number, required: true },
+        amount: { type: Number, required: true }, // Final Amount (after discount)
         currency: { type: String, default: 'INR' }
     },
+    discount: { type: Number, default: 0 }, // Discount applied
     status: {
         type: String,
         enum: ['Booked', 'In Transit', 'Delivered', 'Cancelled'],

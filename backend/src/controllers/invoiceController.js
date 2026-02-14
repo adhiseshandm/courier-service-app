@@ -102,20 +102,26 @@ exports.generateInvoice = async (req, res) => {
         const totalY = rowY + 40;
         doc.font('Helvetica-Bold').fontSize(10).fillColor('#333');
 
+        const finalAmount = consignment.cost.amount;
+        const discount = consignment.discount || 0;
+        const subtotal = finalAmount + discount;
+
         doc.text('Subtotal:', 350, totalY, { align: 'right', width: 90 });
-        doc.font('Helvetica').text(`Rs. ${consignment.cost.amount.toFixed(2)}`, 450, totalY, { align: 'right', width: 90 });
+        doc.font('Helvetica').text(`Rs. ${subtotal.toFixed(2)}`, 450, totalY, { align: 'right', width: 90 });
 
-        doc.font('Helvetica-Bold').text('Tax (18%):', 350, totalY + 20, { align: 'right', width: 90 });
-        const tax = consignment.cost.amount * 0.18; // Assuming tax was inclusive or needs to be shown. Let's create a simulated breakdown for display
-        // Since stored cost is total, let's reverse calculate for display or just show 0 if not handled. 
-        // For simplicity in this demo, let's assume cost is inclusive.
-        // Actually, let's just make Tax 0 for now as we didn't calculate it earlier
-        doc.font('Helvetica').text(`Rs. 0.00`, 450, totalY + 20, { align: 'right', width: 90 });
+        if (discount > 0) {
+            doc.font('Helvetica-Bold').fillColor(accentColor).text('Discount:', 350, totalY + 15, { align: 'right', width: 90 });
+            doc.font('Helvetica').text(`- Rs. ${discount.toFixed(2)}`, 450, totalY + 15, { align: 'right', width: 90 });
+        }
 
-        doc.rect(350, totalY + 40, 200, 1).fill('#e2e8f0');
+        // doc.font('Helvetica-Bold').text('Tax (18%):', 350, totalY + 20, { align: 'right', width: 90 });
+        // const tax = consignment.cost.amount * 0.18; 
+        // doc.font('Helvetica').text(`Rs. 0.00`, 450, totalY + 20, { align: 'right', width: 90 });
 
-        doc.fontSize(12).fillColor(accentColor).text('Total Amount:', 350, totalY + 55, { align: 'right', width: 90 });
-        doc.fontSize(12).text(`Rs. ${consignment.cost.amount.toFixed(2)}`, 450, totalY + 55, { align: 'right', width: 90 });
+        doc.rect(350, totalY + 35, 200, 1).fill('#e2e8f0');
+
+        doc.fontSize(12).fillColor(primaryColor).text('Total Amount:', 350, totalY + 50, { align: 'right', width: 90 });
+        doc.fontSize(12).text(`Rs. ${finalAmount.toFixed(2)}`, 450, totalY + 50, { align: 'right', width: 90 });
 
         // --- Footer ---
         const footerY = 700;
