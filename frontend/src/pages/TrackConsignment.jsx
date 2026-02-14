@@ -4,20 +4,104 @@ import { trackConsignment, downloadInvoice, updateConsignmentStatus, API_BASE_UR
 import TrackingTimeline from '../components/TrackingTimeline';
 import { io } from 'socket.io-client';
 
+// Lazy load map components
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Leaflet Default Icon Issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const truckIcon = new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/713/713311.png',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -10]
+});
+
+// Helper to center map
+const RecenterMap = ({ origin, destination }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (origin && destination) {
+            const bounds = L.latLngBounds([origin, destination]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }, [origin, destination, map]);
+    return null;
+};
+
 const TrackConsignment = () => {
     const [trackingId, setTrackingId] = useState('');
     const [trackingData, setTrackingData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [socket, setSocket] = useState(null);
+    const [geoCoords, setGeoCoords] = useState({ origin: null, destination: null, current: null });
 
     // Socket Connection
     useEffect(() => {
         const newSocket = io(API_BASE_URL);
         setSocket(newSocket);
-
         return () => newSocket.close();
     }, []);
+
+    // Geocoding Function
+    const fetchCoordinates = async (address) => {
+        if (!address) return null;
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            }
+        } catch (e) {
+            console.error("Geocoding failed for", address, e);
+        }
+        return null;
+    };
+
+    // Update Coordinates when Data Changes
+    useEffect(() => {
+        if (trackingData) {
+            const getCoords = async () => {
+                // Try backend coords first, else fallback to geocoding
+                let origin = trackingData.originCoords;
+                let destination = trackingData.destCoords;
+                let current = trackingData.currentCoords;
+
+                // If coordinates look like default Hub [21.1458, 79.0882] but name isn't Hub, fetch real ones
+                if (isDefaultHub(origin) && !trackingData.branch?.includes('Hub') && trackingData.branch !== 'Main Branch') {
+                    const fetched = await fetchCoordinates(trackingData.branch || trackingData.sender?.address);
+                    if (fetched) origin = fetched;
+                }
+
+                // Always try to improve Destination accuracy
+                const destFetched = await fetchCoordinates(trackingData.receiver?.destination);
+                if (destFetched) destination = destFetched;
+
+                // Update current similarly
+                if (trackingData.status !== 'Delivered') {
+                    // Update current based on status/location description
+                    const currentLocName = trackingData.branch || 'Hub';
+                    const currentFetched = await fetchCoordinates(currentLocName);
+                    if (currentFetched) current = currentFetched;
+                } else {
+                    current = destination;
+                }
+
+                setGeoCoords({ origin, destination, current });
+            };
+            getCoords();
+        }
+    }, [trackingData]);
+
+    const isDefaultHub = (coords) => coords && coords[0] === 21.1458 && coords[1] === 79.0882;
 
     // Listen for updates
     useEffect(() => {
@@ -30,7 +114,7 @@ const TrackConsignment = () => {
             setTrackingData(prev => ({
                 ...prev,
                 status: update.status,
-                branch: update.location, // Update current location
+                branch: update.location,
                 history: [
                     ...prev.history.map(h => ({
                         ...h,
@@ -43,7 +127,7 @@ const TrackConsignment = () => {
         return () => {
             socket.off('tracking-update');
         };
-    }, [socket, trackingData?._id]); // Only re-subscribe if ID changes
+    }, [socket, trackingData?._id]);
 
     const getStatusPriority = (status) => {
         const priorities = { 'Booked': 1, 'In Transit': 2, 'Out for Delivery': 3, 'Delivered': 4 };
@@ -57,6 +141,7 @@ const TrackConsignment = () => {
         setLoading(true);
         setError('');
         setTrackingData(null);
+        setGeoCoords({ origin: null, destination: null, current: null });
 
         try {
             const response = await trackConsignment(trackingId);
@@ -81,7 +166,6 @@ const TrackConsignment = () => {
         }
     };
 
-    // Simulation / Admin Controls
     const simulateUpdate = async (newStatus) => {
         if (!trackingData) return;
         try {
@@ -197,65 +281,40 @@ const TrackConsignment = () => {
                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                             <span className="mr-2">🌍</span> Live Shipment Map
                         </h3>
-                        <div className="h-80 w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 z-0 relative"> {/* z-0 important for leaflet */}
-                            <MapComponent
-                                origin={trackingData.originCoords}
-                                destination={trackingData.destCoords}
-                                current={trackingData.currentCoords}
-                            />
+                        <div className="h-96 w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 z-0 relative">
+                            {geoCoords.origin && geoCoords.destination ? (
+                                <MapContainer center={geoCoords.current || geoCoords.origin} zoom={5} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+                                    {/* CartoDB Voyager Tiles for Premium Look */}
+                                    <TileLayer
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                                    />
+
+                                    <RecenterMap origin={geoCoords.origin} destination={geoCoords.destination} />
+
+                                    <Marker position={geoCoords.origin}>
+                                        <Popup>Origin: {trackingData.branch}</Popup>
+                                    </Marker>
+                                    <Marker position={geoCoords.destination}>
+                                        <Popup>Destination: {trackingData.receiver.destination}</Popup>
+                                    </Marker>
+                                    {geoCoords.current && (
+                                        <Marker position={geoCoords.current} icon={truckIcon}>
+                                            <Popup>Current Location: {trackingData.status}</Popup>
+                                        </Marker>
+                                    )}
+                                    <Polyline positions={[geoCoords.origin, geoCoords.destination]} color="#2563eb" dashArray="10, 10" weight={4} opacity={0.6} />
+                                </MapContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400 bg-gray-100">
+                                    Loading Map Data...
+                                </div>
+                            )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-2 text-center">Map shows estimated path based on hub locations.</p>
                     </div>
                 </div>
             )}
         </div>
-    );
-};
-
-// Lazy load map to avoid SSR issues if any (though this is SPA)
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix Leaflet Default Icon Issue
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-const truckIcon = new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/713/713311.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -10]
-});
-
-const MapComponent = ({ origin, destination, current }) => {
-    if (!origin || !destination) return <div className="h-full flex items-center justify-center bg-gray-100 text-gray-400">Map Data Unavailable</div>;
-
-    const center = [(origin[0] + destination[0]) / 2, (origin[1] + destination[1]) / 2];
-
-    return (
-        <MapContainer center={center} zoom={5} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={origin}>
-                <Popup>Origin</Popup>
-            </Marker>
-            <Marker position={destination}>
-                <Popup>Destination</Popup>
-            </Marker>
-            {current && (
-                <Marker position={current} icon={truckIcon}>
-                    <Popup>Current Location</Popup>
-                </Marker>
-            )}
-            <Polyline positions={[origin, destination]} color="blue" dashArray="5, 10" />
-        </MapContainer>
     );
 };
 

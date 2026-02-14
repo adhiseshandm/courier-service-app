@@ -32,13 +32,22 @@ const Layout = ({ children }) => {
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           {user.role === 'admin' && (
-            <a
-              href="/dashboard" /* Changed from /admin to /dashboard */
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/dashboard' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-            >
-              <LayoutDashboard size={20} className={location.pathname === '/dashboard' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
-              <span className="font-medium">CEO Dashboard</span>
-            </a>
+            <>
+              <a
+                href="/admin"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/admin' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                <div className="text-gray-400 group-hover:text-red-400">📊</div>
+                <span className="font-medium">Operations</span>
+              </a>
+              <a
+                href="/dashboard"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/dashboard' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                <LayoutDashboard size={20} className={location.pathname === '/dashboard' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+                <span className="font-medium">CEO Dashboard</span>
+              </a>
+            </>
           )}
 
           {user.role !== 'admin' && (
