@@ -5,6 +5,8 @@ const bookingController = require('../controllers/bookingController');
 const authController = require('../controllers/authController');
 const reportController = require('../controllers/reportController');
 const labelController = require('../controllers/labelController'); // New import
+const trackingController = require('../controllers/trackingController'); // New import
+const invoiceController = require('../controllers/invoiceController'); // New import
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 console.log('API Routes Loaded');
@@ -40,5 +42,10 @@ router.post('/admin/rates', protect, authorize('admin'), rateController.updateRa
 router.get('/label/:consignmentId', protect, labelController.generateLabel);
 
 
+// Public Tracking Route
+router.get('/track/:id', trackingController.trackConsignment);
+
+// Invoice Route
+router.get('/invoice/:id', protect, invoiceController.generateInvoice); // Protected as it contains personal info
 
 module.exports = router;

@@ -56,6 +56,14 @@ export const bookConsignment = async (data) => {
     return response.json();
 };
 
+export const trackConsignment = async (id) => {
+    const response = await fetchWithTimeout(`${API_URL}/track/${id}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' } // Public route, no token needed
+    });
+    return response.json();
+};
+
 export const getDashboardStats = async (branch) => {
     const url = branch ? `${API_URL}/admin/stats?branch=${encodeURIComponent(branch)}` : `${API_URL}/admin/stats`;
     const response = await fetchWithTimeout(url, {
@@ -129,4 +137,20 @@ export const downloadLabel = async (consignmentId) => {
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     window.open(url, '_blank');
+};
+
+export const downloadInvoice = async (consignmentId) => {
+    const response = await fetchWithTimeout(`${API_URL}/invoice/${consignmentId}`, {
+        headers: getHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to generate invoice');
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice-${consignmentId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 };
