@@ -112,6 +112,78 @@ const BookingForm = () => {
 
     // handleVerifyBooking removed completely
 
+    // Success View
+    if (success) {
+        const bookingId = success.match(/ID: ([a-zA-Z0-9]+)/)?.[1] || success.split(': ')[1];
+
+        return (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-2xl mx-auto space-y-8 text-center pt-10">
+                <div className="bg-white p-8 rounded-3xl shadow-xl border border-green-100">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle size={40} className="text-green-600" />
+                    </div>
+
+                    <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Booking Confirmed!</h2>
+                    <p className="text-gray-500 mb-8">Your consignment has been successfully booked.</p>
+
+                    <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-200">
+                        <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">Consignment ID</p>
+                        <div className="flex items-center justify-center space-x-3">
+                            <span className="text-3xl font-mono font-bold text-[#0a192f] select-all">{bookingId}</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { downloadLabel } = await import('../services/api');
+                                    await downloadLabel(bookingId);
+                                } catch (e) { alert('Failed to load label'); }
+                            }}
+                            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all"
+                        >
+                            <span className="text-lg">🏷️</span>
+                            <span>Print Label</span>
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { downloadInvoice } = await import('../services/api');
+                                    await downloadInvoice(bookingId);
+                                } catch (e) { alert('Failed to load invoice'); }
+                            }}
+                            className="flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-bold transition-all"
+                        >
+                            <span className="text-lg">📄</span>
+                            <span>Invoice</span>
+                        </button>
+
+                        <a
+                            href="/track"
+                            className="flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 hover:border-red-500 hover:text-red-600 text-gray-700 py-3 rounded-xl font-bold transition-all"
+                        >
+                            <span className="text-lg">🚚</span>
+                            <span>Track Status</span>
+                        </a>
+
+                        <button
+                            onClick={() => {
+                                setSuccess('');
+                                setCostData(null);
+                            }}
+                            className="flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold transition-all"
+                        >
+                            <span className="text-lg">📦</span>
+                            <span>Book Another</span>
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
 
@@ -121,30 +193,6 @@ const BookingForm = () => {
                     <h2 className="text-2xl font-bold text-[#0a192f]">New Consignment</h2>
                     <p className="text-gray-500 text-sm">Fill in the details to book a shipment</p>
                 </div>
-                {success && (
-                    <div className="bg-green-100 text-green-700 px-4 py-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div className="flex items-center space-x-2">
-                            <CheckCircle size={18} />
-                            <span className="font-medium">{success}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const { downloadLabel } = await import('../services/api');
-                                        const id = success.match(/ID: ([a-zA-Z0-9]+)/)?.[1] || success.split(': ')[1]; // Extract ID
-                                        if (id) await downloadLabel(id);
-                                    } catch (e) { alert('Failed to load label'); console.error(e); }
-                                }}
-                                className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-green-700 flex items-center space-x-1"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2-2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
-                                <span>Print Label</span>
-                            </button>
-                            <button onClick={() => setSuccess('')} className="text-green-800 font-bold p-1 hover:bg-green-200 rounded">&times;</button>
-                        </div>
-                    </div>
-                )}
                 {error && (
                     <div className="bg-red-100 text-red-700 px-4 py-2 rounded-lg flex items-center space-x-2">
                         <AlertCircle size={18} />
