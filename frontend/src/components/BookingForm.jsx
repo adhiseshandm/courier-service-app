@@ -94,8 +94,20 @@ const BookingForm = () => {
             };
             const result = await bookConsignment(bookingPayload);
             if (result.success) {
-                setSuccess(`Booking Confirmed! ID: ${result.bookingId || result.consignmentId}`);
+                const bookingId = result.bookingId || result.consignmentId;
+                setSuccess(`Booking Confirmed! ID: ${bookingId}`);
                 setRefreshHistoryTrigger(prev => prev + 1); // Trigger history update
+
+                // Auto-open WhatsApp
+                if (bookingPayload.sender.phone) {
+                    const phone = bookingPayload.sender.phone.replace(/\D/g, '');
+                    const message = `📦 *Shipment Booked!*\nTracking ID: *${bookingId}*\nTrack here: ${window.location.origin}/track?id=${bookingId}`;
+                    // Small delay to ensure UI updates first
+                    setTimeout(() => {
+                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+                    }, 1000);
+                }
+
                 setFormData({
                     sender: { name: '', phone: '', address: '', pincode: '' },
                     receiver: { name: '', phone: '', address: '', destination: '', pincode: '' },
