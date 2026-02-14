@@ -137,6 +137,16 @@ const TrackConsignment = () => {
                         </div>
                         <div className="mt-4 md:mt-0 text-right flex items-center space-x-3">
                             <button
+                                onClick={() => {
+                                    const message = `🚚 *Tracking Update*\nID: *${trackingData._id}*\nStatus: *${trackingData.status}*\nLocation: ${trackingData.branch || 'Hub'}\nTrack: ${window.location.href}`;
+                                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                                }}
+                                className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-all"
+                                title="Share on WhatsApp"
+                            >
+                                💬
+                            </button>
+                            <button
                                 onClick={handleDownloadInvoice}
                                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2"
                             >
@@ -181,9 +191,71 @@ const TrackConsignment = () => {
 
                         <TrackingTimeline history={trackingData.history} />
                     </div>
+
+                    {/* Live Map Section */}
+                    <div className="bg-gray-50 p-6 border-t border-gray-100">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <span className="mr-2">🌍</span> Live Shipment Map
+                        </h3>
+                        <div className="h-80 w-full rounded-xl overflow-hidden shadow-inner border border-gray-200 z-0 relative"> {/* z-0 important for leaflet */}
+                            <MapComponent
+                                origin={trackingData.originCoords}
+                                destination={trackingData.destCoords}
+                                current={trackingData.currentCoords}
+                            />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2 text-center">Map shows estimated path based on hub locations.</p>
+                    </div>
                 </div>
             )}
         </div>
+    );
+};
+
+// Lazy load map to avoid SSR issues if any (though this is SPA)
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Leaflet Default Icon Issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const truckIcon = new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/713/713311.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -10]
+});
+
+const MapComponent = ({ origin, destination, current }) => {
+    if (!origin || !destination) return <div className="h-full flex items-center justify-center bg-gray-100 text-gray-400">Map Data Unavailable</div>;
+
+    const center = [(origin[0] + destination[0]) / 2, (origin[1] + destination[1]) / 2];
+
+    return (
+        <MapContainer center={center} zoom={5} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={origin}>
+                <Popup>Origin</Popup>
+            </Marker>
+            <Marker position={destination}>
+                <Popup>Destination</Popup>
+            </Marker>
+            {current && (
+                <Marker position={current} icon={truckIcon}>
+                    <Popup>Current Location</Popup>
+                </Marker>
+            )}
+            <Polyline positions={[origin, destination]} color="blue" dashArray="5, 10" />
+        </MapContainer>
     );
 };
 

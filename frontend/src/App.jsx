@@ -5,9 +5,11 @@ import { ThemeProvider, useTheme } from './context/ThemeContext'; // Import Them
 import Login from './pages/Login';
 import BranchSelection from './pages/BranchSelection';
 import AdminDashboard from './pages/AdminDashboard';
+import Dashboard from './pages/Dashboard'; // Import Dashboard
+import OperationsScanner from './pages/OperationsScanner'; // Import Scanner
 import BookingForm from './components/BookingForm';
 import TrackConsignment from './pages/TrackConsignment';
-import { LogOut, User, LayoutDashboard, Send, MapPin, Moon, Sun } from 'lucide-react'; // Import Moon/Sun
+import { LogOut, User, LayoutDashboard, Send, MapPin, Moon, Sun, Scan } from 'lucide-react'; // Import Scan icon
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -31,11 +33,11 @@ const Layout = ({ children }) => {
         <nav className="flex-1 px-4 py-6 space-y-2">
           {user.role === 'admin' && (
             <a
-              href="/admin"
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/admin' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              href="/dashboard" /* Changed from /admin to /dashboard */
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/dashboard' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
             >
-              <LayoutDashboard size={20} className={location.pathname === '/admin' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
-              <span className="font-medium">Dashboard</span>
+              <LayoutDashboard size={20} className={location.pathname === '/dashboard' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+              <span className="font-medium">CEO Dashboard</span>
             </a>
           )}
 
@@ -48,6 +50,14 @@ const Layout = ({ children }) => {
               <span className="font-medium">New Booking</span>
             </a>
           )}
+
+          <a
+            href="/scanner"
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${location.pathname === '/scanner' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+          >
+            <Scan size={20} className={location.pathname === '/scanner' ? 'text-white' : 'text-gray-400 group-hover:text-red-400'} />
+            <span className="font-medium">Rapid Scan</span>
+          </a>
 
           <a
             href="/track"
@@ -110,7 +120,7 @@ const Layout = ({ children }) => {
           {children}
         </div>
       </main>
-    </div>
+    </div >
   );
 };
 
@@ -155,6 +165,24 @@ function App() {
               element={
                 <ProtectedRoute role="admin">
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute role="admin">
+                  <Dashboard /> {/* New Dashboard */}
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/scanner"
+              element={
+                <ProtectedRoute>
+                  <OperationsScanner />
                 </ProtectedRoute>
               }
             />

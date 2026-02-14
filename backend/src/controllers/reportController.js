@@ -60,14 +60,10 @@ exports.getDashboardStats = async (req, res) => {
     try {
         const matchStage = {};
 
-        // If query param 'branch' is provided (and user is admin), use it
-        // OR: If user is restricted to a branch, force it.
-
         if (req.query.branch && req.query.branch !== 'All Branches') {
             matchStage.branch = req.query.branch;
         }
 
-        // Force branch restriction for non-HQ users
         if (req.user.branch && req.user.branch !== 'Headquarters' && req.user.branch !== 'Main Branch') {
             matchStage.branch = req.user.branch;
         }
@@ -84,12 +80,56 @@ exports.getDashboardStats = async (req, res) => {
         // Recent
         const recent = await Consignment.find(matchStage).sort({ bookingDate: -1 }).limit(5);
 
+        // --- NEW: Dashboard Charts Data ---
+
+        // 1. Revenue Trend (Last 7 Days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const revenueTrend = await Consignment.aggregate([
+            { $match: { ...matchStage, bookingDate: { $gte: sevenDaysAgo } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$bookingDate" } },
+                    revenue: { $sum: "$cost.amount" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // 2. Service Type Distribution
+        const serviceDistribution = await Consignment.aggregate([
+            { $match: matchStage },
+            { $group: { _id: "$serviceType", value: { $sum: 1 } } }
+        ]);
+
+        // 3. Status Distribution
+        const statusDistribution = await Consignment.aggregate([
+            { $match: matchStage },
+            { $group: { _id: "$status", value: { $sum: 1 } } }
+        ]);
+
+        // 4. Branch Performance (Top 5)
+        const branchPerformance = await Consignment.aggregate([
+            { $group: { _id: "$branch", bookings: { $sum: 1 }, revenue: { $sum: "$cost.amount" } } },
+            { $sort: { revenue: -1 } },
+            { $limit: 5 }
+        ]);
+
         res.json({
             totalBookings,
             totalRevenue,
-            recentBookings: recent
+            recentBookings: recent,
+            charts: {
+                revenueTrend: revenueTrend.map(r => ({ date: r._id, ...r })),
+                serviceDistribution: serviceDistribution.map(s => ({ name: s._id, value: s.value })),
+                statusDistribution: statusDistribution.map(s => ({ name: s._id, value: s.value })),
+                branchPerformance: branchPerformance.map(b => ({ name: b._id || 'Unknown', ...b }))
+            }
         });
     } catch (err) {
+        console.error('Stats Error:', err);
         res.status(500).json({ error: 'Failed to fetch stats' });
     }
 };
